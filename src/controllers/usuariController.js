@@ -2,83 +2,115 @@
 const supabase = require('../config/supabase');
 
 class UsuariController {
-
-  // GET: Buscar todos os usuários (apenas os não deletados)
+  //-----------------------------------------------------------------------------------------------//
+  // GET: Buscar todos os usuários (somente os que não estão deletados)
   static async getAllUsers(_req, res) {
     const { data, error } = await supabase.from('usuari').select('*').eq('deletd', 'N');
     if (error) return res.status(500).json({ error: error.message });
     res.status(200).json(data);
   }
-
-  // GET: Buscar um usuário pelo ID (apenas se não deletado)
+  //-----------------------------------------------------------------------------------------------//
+  // GET: Buscar um usuário pelo ID (somente se não estiver deletado)
   static async getUserById(req, res) {
     const { id } = req.params;
-    const { data, error } = await supabase.from('usuari').select('*').eq('usu_id', id).eq('deletd', 'N').single();
+    const { data, error } = await supabase
+      .from('usuari')
+      .select('*')
+      .eq('usu_id', id)
+      .eq('deletd', 'N') // Verificar se não está deletado
+      .single();
 
-    if (error) {
-      if (error.message.includes("multiple")) {
-        return res.status(500).json({ message: 'Erro inesperado: múltiplas entradas encontradas.' });
-      }
-      return res.status(404).json({ message: 'Usuário não encontrado' });
-    }
+    if (!data) return res.status(404).json({ message: 'Usuário não encontrado ou deletado' });
+
 
     res.status(200).json(data);
   }
-
+  //-----------------------------------------------------------------------------------------------//
   // POST: Criar um novo usuário
   static async createUser(req, res) {
-    const { usu_nome, usu_email, usu_senha, usu_perfil } = req.body;
-    if (!usu_nome || !usu_email || !usu_senha || !usu_perfil) {
-      return res.status(400).json({ message: 'Nome, Email, Senha e Perfil são obrigatórios' });
+    const { usu_nome, usu_email } = req.body;
+    if (!usu_nome || !usu_email) {
+      return res.status(400).json({ message: 'Nome e Email são obrigatórios' });
     }
 
-    const { data, error } = await supabase.from('usuari').insert([{
-      usu_nome,
-      usu_email,
-      usu_senha,
-      usu_perfil,
-      deletd: 'N' // Define como não deletado
-    }]);
+    const { data, error } = await supabase.from('usuari').insert([{ usu_nome, usu_email }]);
     if (error) return res.status(500).json({ error: error.message });
-    res.status(201).json({ message: 'Usuário criado com sucesso'});
+    res.status(201).json({ message: 'Usuário criado com sucesso' });
   }
-
+  //-----------------------------------------------------------------------------------------------//
   // PUT: Atualizar um usuário pelo ID
   static async updateUser(req, res) {
-    const { id } = req.params;
+    const { id } = req.params; // Capturar o ID passado na URL
     const { usu_nome, usu_email, usu_senha, usu_perfil } = req.body;
 
+    // Verificar se o usuário existe e não está excluído
+    const { data: userData, error: userError } = await supabase
+      .from('usuari')
+      .select('*')
+      .eq('usu_id', id)
+      .eq('deletd', 'N') // Verifica se o usuário não está excluído
+      .single(); // Pega um único registro
+
+    if (userError || !userData) {
+      return res.status(404).json({ message: 'Usuário não encontrado ou está excluído' });
+    }
+
+    // Criar um objeto para atualizar apenas os campos recebidos
     const updateData = {};
     if (usu_nome) updateData.usu_nome = usu_nome;
     if (usu_email) updateData.usu_email = usu_email;
     if (usu_senha) updateData.usu_senha = usu_senha;
     if (usu_perfil) updateData.usu_perfil = usu_perfil;
 
-    const { data, error } = await supabase.from('usuari').update(updateData).eq('usu_id', id).eq('deletd', 'N');
-    if (error) return res.status(500).json({ error: error.message });
-    if (data.length === 0) return res.status(404).json({ message: 'Usuário não encontrado ou já deletado' });
+    // Query para atualizar os dados no banco de dados
+    const { data, error } = await supabase
+      .from('usuari')
+      .update(updateData)
+      .eq('usu_id', id);
 
-    res.status(200).json({ message: 'Usuário atualizado com sucesso', data });
+    // Se ocorreu um erro, retornar erro
+    if (error) return res.status(500).json({ error: error.message });
+
+    // Retornar sucesso sem validações adicionais
+    res.status(200).json({ message: 'Usuário atualizado com sucesso' });
   }
 
-  // DELETE: Remover um usuário pelo ID (atualiza o campo deletd para 'S')
+  //-----------------------------------------------------------------------------------------------//
+  // DELETE: Soft delete (atualiza o campo deletd para 'S')
   static async deleteUser(req, res) {
     const { id } = req.params;
-    const { data, error } = await supabase.from('usuari').update({ deletd: 'S' }).eq('usu_id', id).eq('deletd', 'N');
-    
+
+    // Verificar se o usuário existe
+    const { data: user, error: fetchError } = await supabase
+      .from('usuari')
+      .select('*')
+      .eq('usu_id', id)
+      .single();
+
+    // Se o usuário não foi encontrado, retornar mensagem apropriada
+    if (!user) return res.status(404).json({ message: 'Usuário não encontrado' });
+
+    // Atualizar o campo DELETD para 'S' (soft delete)
+    const { error } = await supabase
+      .from('usuari')
+      .update({ deletd: 'S' }) // Marcar como excluído
+      .eq('usu_id', id);
+
+    // Se ocorreu um erro, retornar erro
     if (error) return res.status(500).json({ error: error.message });
-    if (data.length === 0) return res.status(404).json({ message: 'Usuário não encontrado ou já deletado' });
 
     res.status(200).json({ message: 'Usuário removido com sucesso (soft delete)' });
   }
 
-  // (Opcional) DELETE: Exclusão física de um usuário, se necessário
+  //-----------------------------------------------------------------------------------------------//
+  // DELETE: Exclusão física de um usuário (hard delete)
   static async hardDeleteUser(req, res) {
     const { id } = req.params;
-    const { data, error } = await supabase.from('usuari').delete().eq('usu_id', id).eq('deletd', 'S');
-    
+
+    const { data, error } = await supabase.from('usuari').delete().eq('usu_id', id);
+
     if (error) return res.status(500).json({ error: error.message });
-    if (data.length === 0) return res.status(404).json({ message: 'Usuário não encontrado ou não pode ser excluído' });
+    if (data.length === 0) return res.status(404).json({ message: 'Usuário não encontrado' });
 
     res.status(200).json({ message: 'Usuário excluído permanentemente' });
   }
