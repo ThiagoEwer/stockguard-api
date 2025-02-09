@@ -44,7 +44,7 @@ router.get('/', EstoqueController.getAllStock);
  *       500:
  *         description: Erro ao buscar estoque
  */
-router.get('/:id', EstoqueController.getAllStock);
+router.get('/:id', EstoqueController.getStockById);
 
 /**
  * @swagger

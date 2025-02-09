@@ -11,7 +11,7 @@ const swaggerOptions = {
       info: {
         title: 'StockGuard API',
         version: '1.0.0',
-        description: 'API para gerenciamento de estoque',
+        description: 'API para integração do banco de dados com o StockGuard System',
       },
       servers: [
         {

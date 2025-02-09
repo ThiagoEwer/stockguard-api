@@ -1,0 +1,95 @@
+# StockGuard API
+
+StockGuard API is a robust backend system for inventory management, built with Node.js and integrated with Supabase for data persistence.
+
+## 🚀 Features
+
+- Complete inventory management
+- Supplier management
+- Stock movement tracking
+- User authentication
+- Order processing
+- Location management
+- Product catalog
+- Customer management
+
+## 🛠 Tech Stack
+
+- Node.js
+- Express.js
+- Supabase
+- Swagger (OpenAPI 3.0.0)
+
+## 📋 Prerequisites
+
+- Node.js installed
+- Supabase account
+- Git
+
+## ⚙️ Installation
+
+1. Clone the repository
+```bash
+git clone https://github.com/ThiagoEwer/stockguard-api.git
+
+cd stockguard-api
+
+npm install
+
+
+## Execute
+Execute the script on: src/config/SQL/DBCreations.sql in you supabase or another SGBD
+
+Configure environment variables: Create a .env file with:
+SUPABASE_URL=your_supabase_url
+SUPABASE_KEY=your_supabase_key
+PORT=3000
+
+## Start the server:
+npm run dev
+
+
+## 📚 API Documentation
+The API documentation is available through Swagger UI at:
+http://localhost:3000/api-docs
+
+
+## 🗄️ Database Structure
+The database is structured in Supabase with the following main tables:
+
+usuari - User management
+fornec - Supplier information
+estoq - Stock control
+movime - Movement tracking
+produt - Product catalog
+pedido - Order management
+local - Location management
+client - Customer data
+Database Creation Script
+The complete database creation script is available in the db-creation.sql file. This script includes:
+
+Table creation
+Foreign key relationships
+Indexes
+Initial data seeding
+Soft delete functionality implementation
+
+## 🔐 Security
+Authentication required for all endpoints
+Soft delete implementation for data safety
+Role-based access control
+
+## 🤝 Contributing
+Fork the project
+Create your feature branch (git checkout -b feature/AmazingFeature)
+Commit your changes (git commit -m 'Add some AmazingFeature')
+Push to the branch (git push origin feature/AmazingFeature)
+Open a Pull Request
+
+## 👤 Author: ThiagoEwer
+
+## 📝 License
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 🙏 Acknowledgments
+Supabase team for the excellent database service
