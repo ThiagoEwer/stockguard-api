@@ -39,6 +39,7 @@ npm install
 
 ## Execute
 Execute the script on: src/config/SQL/DBCreations.sql in you supabase or another SGBD
+and stay the schema public in you database on SUPABASE
 
 Configure environment variables: Create a .env file with:
 SUPABASE_URL=your_supabase_url
