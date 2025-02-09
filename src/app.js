@@ -1,6 +1,13 @@
-// src/app.js
 const express = require('express');
+const router = express.Router();
+const cors = require('cors');
 const app = express();
+
+app.use(cors({origin:'*'}));
+
+app.use(express.json());
+
+
 const usuariRoutes = require('./routes/usuariRoutes');
 const produtRoutes = require('./routes/produtRoutes');
 const localRoutes = require('./routes/localRoutes');
@@ -10,9 +17,7 @@ const pedidoRoutes = require('./routes/pedidoRoutes');
 const clienteRoutes = require('./routes/clienteRoutes');
 const fornecedorRoutes = require('./routes/fornecedorRoutes');
 
-// Middleware para parsing de JSON
-app.use(express.json());
-
+// Definição das rotas da API
 app.use('/api/usuari', usuariRoutes);
 app.use('/api/produt', produtRoutes);
 app.use('/api/locali', localRoutes);
